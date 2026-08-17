@@ -78,26 +78,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =========================================================================
-    // Text-to-Speech (TTS) Voice Synthesis
+    // Text-to-Speech (TTS) Voice Synthesis (Consistent Persona)
     // =========================================================================
+    let availableVoices = [];
+    function initVoices() {
+        if ('speechSynthesis' in window) {
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+    }
+    initVoices();
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = initVoices;
+    }
+
+    function getConsistentVoice(isHindi) {
+        if (!availableVoices || availableVoices.length === 0) {
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+
+        if (isHindi) {
+            // Consistent Hindi voice (prioritizing female natural voice)
+            return availableVoices.find(v => (v.lang === 'hi-IN' || v.lang.startsWith('hi')) && (v.name.includes('Female') || v.name.includes('Swara') || v.name.includes('Kalpana') || v.name.includes('Google')))
+                || availableVoices.find(v => v.lang.startsWith('hi'))
+                || availableVoices.find(v => v.lang.includes('IN'));
+        } else {
+            // Consistent Indian English concierge voice (prioritizing female natural voice)
+            return availableVoices.find(v => (v.lang === 'en-IN' || v.lang.includes('en-IN')) && (v.name.includes('Heera') || v.name.includes('Neerja') || v.name.includes('Female') || v.name.includes('Natural') || v.name.includes('Google')))
+                || availableVoices.find(v => v.lang.includes('en-IN'))
+                || availableVoices.find(v => (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Jenny')) && v.lang.startsWith('en'))
+                || availableVoices.find(v => v.lang.startsWith('en'))
+                || availableVoices[0];
+        }
+    }
+
     function speakText(text) {
         if (!('speechSynthesis' in window) || (ttsToggle && !ttsToggle.checked)) return;
 
         window.speechSynthesis.cancel(); // Stop active speech
         const cleanText = text.replace(/[*_#`~]/g, ''); // Strip markdown tokens
         const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        // Detect Hindi script vs English/Hinglish
+        const hasHindiScript = /[\u0900-\u097F]/.test(cleanText);
+        utterance.lang = hasHindiScript ? 'hi-IN' : 'en-IN';
+
+        const chosenVoice = getConsistentVoice(hasHindiScript);
+        if (chosenVoice) {
+            utterance.voice = chosenVoice;
+        }
+
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
 
-        // Auto-select Indian English or Hindi voice if supported by browser
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN') || v.lang.includes('en-IN'));
-        if (preferredVoice) {
-            utterance.voice = preferredVoice;
-        }
-
         window.speechSynthesis.speak(utterance);
     }
+
 
     // =========================================================================
     // Message Rendering
