@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnNewSession = document.getElementById("btnNewSession");
     const typingIndicator = document.getElementById("typingIndicator");
     const ttsToggle = document.getElementById("ttsToggle");
-    const scenarioChips = document.querySelectorAll(".scenario-chips-scroll .huvo-chip, .scenario-chips-scroll .chip");
 
     // DOM Elements - Drawer & Analytics
     const btnOpenAnalytics = document.getElementById("btnOpenAnalytics");
@@ -243,15 +242,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Handle Quick Scenario Chips
+    // Handle Quick Scenario Chips (Robust Event Delegation)
+    const scenarioScrollContainer = document.querySelector(".scenario-chips-scroll");
+    if (scenarioScrollContainer) {
+        scenarioScrollContainer.addEventListener("click", (e) => {
+            const chip = e.target.closest("[data-msg]");
+            if (chip) {
+                const msg = chip.getAttribute("data-msg");
+                if (msg) {
+                    sendMessage(msg);
+                }
+            }
+        });
+    }
+
+    // Direct binding fallback for all elements with data-msg
+    const scenarioChips = document.querySelectorAll("[data-msg]");
     scenarioChips.forEach(chip => {
-        chip.addEventListener("click", () => {
+        chip.addEventListener("click", (e) => {
+            e.stopPropagation();
             const msg = chip.getAttribute("data-msg");
             if (msg) {
                 sendMessage(msg);
             }
         });
     });
+
 
     // =========================================================================
     // Speech Recognition (STT Microphone)
