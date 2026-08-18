@@ -1,0 +1,23 @@
+# Environment variables (SECURITY GUARD - NEVER COMMIT)
+.env
+*.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+.venv/
+ENV/
+
+# System / IDE generated
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.system_generated/
+*.log
