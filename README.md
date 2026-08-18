@@ -110,8 +110,8 @@ graph TD
 
 ### Step 1: Clone Repository & Setup Virtual Environment
 ```bash
-git clone https://github.com/Utkarshxtripathi/northstar-sales-agent.git
-cd northstar-sales-agent
+git clone https://github.com/Utkarshxtripathi/North-Star-sales-agent.git
+cd North-Star-sales-agent
 
 # Create virtual environment
 python -m venv venv
