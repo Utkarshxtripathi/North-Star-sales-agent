@@ -1,9 +1,3 @@
-"""
-Core Agent Orchestration for Huvo AI Real Estate Sales Agent (Northstar One).
-Manages multi-turn conversation memory, Gemini API interactions, native tool execution,
-and structured JSON analytics extraction with automatic multi-model failover for high reliability.
-"""
-
 import os
 import json
 import time
@@ -15,16 +9,20 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-from prompts.system_prompt import SYSTEM_PROMPT
-from tools import book_site_visit
+try:
+    from backend.prompts.system_prompt import SYSTEM_PROMPT
+    from backend.tools import book_site_visit
+except ImportError:
+    from prompts.system_prompt import SYSTEM_PROMPT
+    from tools import book_site_visit
 
 load_dotenv()
 
-# Setup logging
+# Configure module logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Fallback pool of high-speed models to guarantee 100% uptime even on free-tier rate limits
+# Fallback pool of high-speed models to ensure continuous availability
 MODEL_POOL = [
     os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
     "gemini-3.7-flash",
@@ -33,13 +31,8 @@ MODEL_POOL = [
     "gemini-3-flash-preview"
 ]
 
-
-# ==============================================================================
-# Pydantic Schemas for Structured Analytics & Validation
-# ==============================================================================
-
+# Structured CRM analytics and qualification schema
 class LeadAnalytics(BaseModel):
-    """Structured Lead & Conversation Analytics extracted post-conversation."""
     customer_name: Optional[str] = Field(
         default="Not provided",
         description="Name of the customer if mentioned during conversation"
@@ -58,7 +51,7 @@ class LeadAnalytics(BaseModel):
     )
     budget_range: str = Field(
         default="Not specified",
-        description="Customer budget or price readiness (e.g., '₹1.35 Cr - ₹1.75 Cr', '₹1.35 Cr+', 'Under ₹1.35 Cr', 'Flexible')"
+        description="Customer budget or price readiness"
     )
     interest_level: Literal["High", "Medium", "Low", "Uninterested", "DND_Requested"] = Field(
         default="Medium",
@@ -70,7 +63,7 @@ class LeadAnalytics(BaseModel):
     )
     site_visit_details: Optional[str] = Field(
         default=None,
-        description="Details of site visit if booked/attempted (Date, Time, Slot ID, or Failure reason)"
+        description="Details of site visit if booked/attempted"
     )
     follow_up_requirement: Literal["Immediate Callback", "Scheduled Callback", "Send Brochure / WhatsApp", "Site Visit Coordination", "None (DND / Uninterested)"] = Field(
         default="Scheduled Callback",
@@ -86,7 +79,7 @@ class LeadAnalytics(BaseModel):
     )
     objections_raised: List[str] = Field(
         default_factory=list,
-        description="List of objections raised by the customer (e.g., 'Price too high', 'Distance to office', 'Looking for 4 BHK')"
+        description="List of objections raised by the customer"
     )
     executive_summary: str = Field(
         ...,
@@ -94,12 +87,11 @@ class LeadAnalytics(BaseModel):
     )
     recommended_next_action: str = Field(
         ...,
-        description="Specific actionable next step for the human sales executive / CRM automation"
+        description="Specific actionable next step for the human sales executive"
     )
 
-
+# Manages state, chat instance, and message history for an active session
 class SessionState:
-    """Represents the live state and memory of a conversation session."""
     def __init__(self, session_id: str, client: Any, model_name: str):
         self.session_id = session_id
         self.client = client
@@ -110,6 +102,7 @@ class SessionState:
         self.last_tool_call: Optional[Dict[str, Any]] = None
         self.analytics_cache: Optional[LeadAnalytics] = None
 
+    # Initialize a new Gemini chat session with system instruction and tool definitions
     def _init_chat(self, model: str):
         return self.client.chats.create(
             model=model,
@@ -120,21 +113,14 @@ class SessionState:
             )
         )
 
+    # Switch session to a fallback model upon encountering rate limits or failures
     def switch_model(self, new_model: str):
-        """Switches the underlying model while preserving conversation context."""
         logger.info(f"Failing over session {self.session_id} to model: {new_model}")
         self.current_model = new_model
-        # Re-initialize chat on new model with prior turns if any
         self.chat = self._init_chat(new_model)
 
-
-# ==============================================================================
-# Real Estate AI Agent Orchestrator
-# ==============================================================================
-
+# Orchestrates conversations, model failover, and CRM analytics extraction
 class RealEstateAgent:
-    """Manages Gemini Client, Active Sessions, Multi-Model Failover, and Analytics."""
-
     def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
@@ -145,8 +131,8 @@ class RealEstateAgent:
         self.sessions: Dict[str, SessionState] = {}
         logger.info(f"RealEstateAgent initialized with primary model: {self.model_name}")
 
+    # Fetch existing session state or instantiate a new one
     def _get_or_create_session(self, session_id: str) -> SessionState:
-        """Retrieves or initializes a chat session."""
         if session_id not in self.sessions:
             logger.info(f"Creating new Gemini chat session for ID: {session_id}")
             self.sessions[session_id] = SessionState(
@@ -156,11 +142,11 @@ class RealEstateAgent:
             )
         return self.sessions[session_id]
 
+    # Process user message with multi-turn history and automatic tool execution
     def chat(self, session_id: str, user_message: str) -> Dict[str, Any]:
-        """Processes a user message with multi-model failover for 100% reliable execution."""
         session = self._get_or_create_session(session_id)
         
-        # Record user message in UI history
+        # Append incoming user turn to UI history
         timestamp = datetime.now().strftime("%I:%M %p")
         session.ui_history.append({
             "role": "user",
@@ -172,19 +158,18 @@ class RealEstateAgent:
         last_err = None
         tool_info = None
 
-        # Try models in the pool for automatic failover on rate limits
+        # Attempt turn execution across model pool for resilience
         for candidate_model in MODEL_POOL:
             try:
-                # If candidate model differs from current, switch session chat
                 if session.current_model != candidate_model:
                     session.switch_model(candidate_model)
 
-                # Send message to Gemini Chat with Automatic Function Calling (AFC)
+                # Send message through Gemini chat with Automatic Function Calling
                 response = session.chat.send_message(user_message)
                 assistant_reply = response.text or ""
                 last_err = None
 
-                # Inspect conversation history to check if a function call took place in this turn
+                # Extract tool call details from chat history if executed in this turn
                 raw_history = session.chat.get_history()
                 for item in reversed(raw_history):
                     if hasattr(item, 'parts') and item.parts:
@@ -209,7 +194,7 @@ class RealEstateAgent:
                     if tool_info:
                         break
 
-                break  # Successful generation, exit loop
+                break
 
             except Exception as e:
                 last_err = e
@@ -217,6 +202,7 @@ class RealEstateAgent:
                 logger.warning(f"Error with model {candidate_model} on session {session_id}: {err_str[:120]}. Attempting failover...")
                 time.sleep(0.5)
 
+        # Handle complete failover exhaustion with graceful fallback response
         if last_err is not None and not assistant_reply:
             logger.error(f"All model failovers exhausted for session {session_id}: {str(last_err)}")
             error_msg = "I apologize, but our sales line is experiencing high traffic. Please allow me a moment or let me know how I can assist you with Northstar One."
@@ -238,7 +224,7 @@ class RealEstateAgent:
         if tool_info:
             session.last_tool_call = tool_info
 
-        # Record model response in UI history
+        # Record assistant response and tool metadata in UI history
         session.ui_history.append({
             "role": "assistant",
             "content": assistant_reply,
@@ -246,7 +232,7 @@ class RealEstateAgent:
             "tool_call": tool_info
         })
 
-        # Invalidate analytics cache since history changed
+        # Invalidate cached analytics upon new conversation turns
         session.analytics_cache = None
 
         return {
@@ -257,8 +243,8 @@ class RealEstateAgent:
             "history": session.ui_history
         }
 
+    # Extract structured CRM qualification analytics from conversation transcript
     def generate_analytics(self, session_id: str) -> LeadAnalytics:
-        """Analyzes the full conversation transcript and produces structured JSON analytics with failover."""
         session = self.sessions.get(session_id)
         if not session or not session.ui_history:
             return LeadAnalytics(
@@ -277,7 +263,7 @@ class RealEstateAgent:
         if session.analytics_cache:
             return session.analytics_cache
 
-        # Format transcript for analytics prompt
+        # Format transcript lines with role and tool call details
         formatted_transcript = []
         for msg in session.ui_history:
             role = "Customer" if msg["role"] == "user" else "AI Sales Agent"
@@ -308,6 +294,7 @@ Ensure all fields are objectively derived from the actual dialogue:
 - Write a crisp executive summary and recommended next action for the sales manager.
 """
 
+        # Call Gemini with structured JSON output schema
         for candidate_model in MODEL_POOL:
             try:
                 logger.info(f"Generating structured analytics for session {session_id} using {candidate_model}")
@@ -330,7 +317,7 @@ Ensure all fields are objectively derived from the actual dialogue:
                 logger.warning(f"Analytics failover from {candidate_model}: {str(e)[:100]}")
                 time.sleep(0.5)
 
-        # Safe fallback extraction if all models fail
+        # Fallback analytics if LLM generation encounters issues
         fallback_analytics = LeadAnalytics(
             language_detected="Mixed",
             configuration_preference="Undecided",
@@ -345,17 +332,16 @@ Ensure all fields are objectively derived from the actual dialogue:
         )
         return fallback_analytics
 
+    # Reset in-memory session state
     def reset_session(self, session_id: str) -> None:
-        """Clears memory for a specific session."""
         if session_id in self.sessions:
             del self.sessions[session_id]
             logger.info(f"Session {session_id} reset successfully.")
 
+    # Retrieve recorded UI message history for a session
     def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
-        """Returns the conversation history for a given session."""
         session = self.sessions.get(session_id)
         return session.ui_history if session else []
-
 
 # Global singleton agent instance
 agent_instance = RealEstateAgent()

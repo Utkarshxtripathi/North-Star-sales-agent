@@ -1,6 +1,6 @@
 # Northstar One — AI Real Estate Conversational Sales Agent
 
-> **Huvo AI — Forward Deployed Engineer Assignment**  
+> **Northstar Sales Agent**  
 > **Author**: Utkarsh  
 > **Backend**: FastAPI (Python)  
 > **LLM Engine**: Google Gemini (`google-genai` SDK / Gemini 2.5 Flash)
@@ -78,22 +78,26 @@ graph TD
 ## 📂 Project Structure
 
 ```text
-├── main.py                # FastAPI server, REST routes, template & static mounts
-├── agent.py               # Gemini client, session memory, tool calling & analytics extraction
-├── tools.py               # Backend tool functions (site visit booking & failure simulation)
-├── test_scenarios.py      # Automated test suite executing 9 evaluation scenarios
-├── requirements.txt       # Python dependencies
-├── .env.example           # Environment variable template
-├── PROMPT.md              # Detailed prompt engineering documentation
-├── README.md              # Project documentation and architectural guide
-├── prompts/
-│   ├── __init__.py
-│   └── system_prompt.py   # Dual-channel system prompt definition
+├── backend/
+│   ├── __init__.py            # Backend package initialization & re-exports
+│   ├── main.py                # FastAPI server, REST routes, template & static mounts
+│   ├── agent.py               # Gemini client, session memory, tool calling & analytics extraction
+│   ├── tools.py               # Backend tool functions (site visit booking & failure simulation)
+│   └── prompts/
+│       ├── __init__.py
+│       └── system_prompt.py   # Dual-channel system prompt definition
+├── main.py                    # Root entry point delegating to backend.main:app
+├── test_server.py             # Unit test suite for API endpoints and booking tools
+├── test_scenarios.py          # Automated test suite executing 9 evaluation scenarios
+├── requirements.txt           # Python dependencies
+├── .env.example               # Environment variable template
+├── PROMPT.md                  # Detailed prompt engineering documentation
+├── README.md                  # Project documentation and architectural guide
 ├── templates/
-│   └── index.html         # Modern web interface (Chat + CRM Intelligence panel)
+│   └── index.html             # Modern web interface (Chat + CRM Intelligence panel)
 └── static/
-    ├── style.css          # Clean, responsive luxury styling
-    └── app.js             # Client logic (STT, TTS, chat streaming, tool rendering, analytics)
+    ├── style.css              # Clean, responsive luxury styling
+    └── app.js                 # Client logic (STT, TTS, chat streaming, tool rendering, analytics)
 ```
 
 ---
@@ -106,8 +110,8 @@ graph TD
 
 ### Step 1: Clone Repository & Setup Virtual Environment
 ```bash
-git clone <your-repo-url>
-cd "Huvo AI"
+git clone https://github.com/Utkarshxtripathi/northstar-sales-agent.git
+cd northstar-sales-agent
 
 # Create virtual environment
 python -m venv venv

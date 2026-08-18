@@ -1,10 +1,5 @@
-/* ==========================================================================
-   Northstar One — Luxury Real Estate AI Concierge Stylesheet
-   Clean Ice-Slate & Royal Slate Aesthetic with Glassmorphism
-   ========================================================================== */
-
+/* Root variables and design tokens */
 :root {
-    /* Theme Colors */
     --bg-main: #F4F7FB;
     --bg-subtle: #E6EEFA;
     --card-bg: rgba(255, 255, 255, 0.94);
@@ -40,6 +35,7 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* Global resets and box sizing */
 * {
     margin: 0;
     padding: 0;
@@ -57,9 +53,7 @@ body {
     position: relative;
 }
 
-/* ==========================================================================
-   Background Architecture (Subtle Grid & Ambient Glows)
-   ========================================================================== */
+/* Background overlay grid and ambient blur circles */
 .bg-grid-overlay {
     position: fixed;
     inset: 0;
@@ -95,6 +89,7 @@ body {
     filter: blur(140px);
 }
 
+/* Fullscreen app layout structure */
 .app-layout {
     display: flex;
     flex-direction: column;
@@ -104,9 +99,7 @@ body {
     z-index: 10;
 }
 
-/* ==========================================================================
-   Top Navigation Header
-   ========================================================================== */
+/* Header navigation bar */
 .top-nav {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
@@ -125,7 +118,6 @@ body {
     gap: 16px;
 }
 
-/* Brand Group */
 .brand-group {
     display: flex;
     align-items: center;
@@ -187,7 +179,7 @@ body {
     color: var(--text-muted);
 }
 
-/* Center Badges */
+/* Center pricing pill badge */
 .header-center-badges {
     display: flex;
     align-items: center;
@@ -226,7 +218,7 @@ body {
     margin: 0 4px;
 }
 
-/* Header Buttons */
+/* Header action buttons */
 .header-actions {
     display: flex;
     align-items: center;
@@ -285,9 +277,7 @@ body {
     border-color: var(--text-muted);
 }
 
-/* ==========================================================================
-   Centered Concierge Chat Area
-   ========================================================================== */
+/* Chat container and layout wrapper */
 .chat-main-container {
     flex: 1;
     display: flex;
@@ -307,7 +297,7 @@ body {
     padding: 0 16px;
 }
 
-/* Quick Scenarios Ribbon */
+/* Scenario quick action chips */
 .scenario-ribbon {
     display: flex;
     align-items: center;
@@ -395,7 +385,7 @@ body {
     letter-spacing: 0.04em;
 }
 
-/* Chat Messages Scroll Viewport */
+/* Chat message scroll area */
 .chat-viewport {
     flex: 1;
     overflow-y: auto;
@@ -415,7 +405,7 @@ body {
     border-radius: 6px;
 }
 
-/* Message Groups */
+/* Message groups and avatars */
 .message-group {
     display: flex;
     gap: 12px;
@@ -487,7 +477,7 @@ body {
     color: var(--text-light);
 }
 
-/* Chat Message Bubbles */
+/* Message text bubbles */
 .bubble {
     padding: 14px 18px;
     border-radius: var(--radius-md);
@@ -520,7 +510,7 @@ body {
     box-shadow: 0 4px 16px rgba(28, 35, 49, 0.2);
 }
 
-/* Voice Play Button */
+/* Spoken audio replay button */
 .btn-speech-play {
     align-self: flex-start;
     display: inline-flex;
@@ -545,7 +535,7 @@ body {
     transform: translateY(-1px);
 }
 
-/* Tool Execution Badges */
+/* Function calling result badges */
 .tool-callout {
     margin-top: 12px;
     padding: 10px 14px;
@@ -580,7 +570,7 @@ body {
     opacity: 0.95;
 }
 
-/* Typing Indicator */
+/* Typing state animation */
 .typing-indicator {
     display: flex;
     align-items: center;
@@ -626,9 +616,7 @@ body {
     font-weight: 600;
 }
 
-/* ==========================================================================
-   Floating Input Dock
-   ========================================================================== */
+/* Floating bottom dock and input controls */
 .input-dock-container {
     position: absolute;
     bottom: 16px;
@@ -789,9 +777,7 @@ body {
     cursor: not-allowed;
 }
 
-/* ==========================================================================
-   Slide-Over Drawer: CRM Lead Intelligence
-   ========================================================================== */
+/* CRM slide-over drawer and backdrop */
 .drawer-backdrop {
     position: fixed;
     inset: 0;
@@ -912,7 +898,7 @@ body {
     padding: 22px;
 }
 
-/* Placeholder */
+/* Empty placeholder state */
 .drawer-placeholder {
     text-align: center;
     padding: 40px 16px;
@@ -936,7 +922,7 @@ body {
     line-height: 1.5;
 }
 
-/* Drawer Content & Cards */
+/* Structured cards and metrics */
 .drawer-content {
     display: flex;
     flex-direction: column;
@@ -987,7 +973,7 @@ body {
 .badge-low { background: #f1f5f9; color: #64748b; }
 .badge-dnd { background: #fee2e2; color: #b91c1c; }
 
-/* CRM Cards */
+/* Lead insight and booking cards */
 .crm-card {
     background: #ffffff;
     border: 1px solid var(--border-subtle);
@@ -1101,7 +1087,7 @@ body {
     display: none !important;
 }
 
-/* Responsive adjustments */
+/* Responsive viewports */
 @media (max-width: 768px) {
     .header-center-badges {
         display: none;

@@ -12,16 +12,15 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <!-- Background Grid Lines & Subtle Ambient Glows -->
+    <!-- Background overlay elements -->
     <div class="bg-grid-overlay"></div>
     <div class="ambient-glow glow-top-right"></div>
     <div class="ambient-glow glow-bottom-left"></div>
 
     <div class="app-layout">
-        <!-- Top Navigation Header -->
+        <!-- Navigation bar with branding and actions -->
         <header class="top-nav">
             <div class="nav-container">
-                <!-- Brand Group -->
                 <div class="brand-group">
                     <div class="brand-logo-icon">
                         <span class="star-icon">✦</span>
@@ -37,7 +36,6 @@
                     </div>
                 </div>
 
-                <!-- Center Badges -->
                 <div class="header-center-badges">
                     <div class="pill-badge-pricing">
                         <span class="live-dot"></span>
@@ -45,7 +43,6 @@
                     </div>
                 </div>
 
-                <!-- Right Actions -->
                 <div class="header-actions">
                     <button id="btnOpenAnalytics" class="btn-primary-gradient" title="View CRM Lead Qualification & Structured Analytics">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
@@ -61,11 +58,11 @@
             </div>
         </header>
 
-        <!-- Main Chat Area -->
+        <!-- Main conversational workspace -->
         <main class="chat-main-container">
             <div class="chat-wrapper">
                 
-                <!-- Quick Test Scenarios Bar -->
+                <!-- Quick evaluation prompt chips -->
                 <div class="scenario-ribbon">
                     <div class="scenario-header-label">
                         <span class="mini-tag">TEST SUITE</span>
@@ -102,9 +99,8 @@
                     </div>
                 </div>
 
-                <!-- Chat Viewport -->
+                <!-- Chat message stream -->
                 <div class="chat-viewport" id="chatViewport">
-                    <!-- Initial Welcome Message -->
                     <div class="message-group assistant-group">
                         <div class="avatar advisor-avatar">
                             <span>✦</span>
@@ -123,7 +119,7 @@
                     </div>
                 </div>
 
-                <!-- Typing Indicator -->
+                <!-- Live response typing indicator -->
                 <div id="typingIndicator" class="typing-indicator hidden">
                     <div class="avatar advisor-avatar">
                         <span>✦</span>
@@ -136,7 +132,7 @@
                     </div>
                 </div>
 
-                <!-- Floating Input Dock -->
+                <!-- Chat input form dock -->
                 <div class="input-dock-container">
                     <div class="input-dock-toolbar">
                         <label class="toggle-pill" title="Play agent responses aloud with spoken voice">
@@ -175,7 +171,7 @@
             </div>
         </main>
 
-        <!-- Slide-Over Drawer: CRM Lead Intelligence -->
+        <!-- CRM analytics slide-over drawer -->
         <div id="analyticsBackdrop" class="drawer-backdrop hidden"></div>
         <aside id="analyticsDrawer" class="analytics-drawer">
             <div class="drawer-header">
@@ -210,7 +206,6 @@
                 </div>
 
                 <div id="analyticsDetails" class="drawer-content hidden">
-                    <!-- Metric Cards Grid -->
                     <div class="metrics-grid">
                         <div class="metric-card">
                             <span class="metric-label">Lead Interest</span>
@@ -230,7 +225,6 @@
                         </div>
                     </div>
 
-                    <!-- Site Visit Booking Card -->
                     <div class="crm-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">📍</span>
@@ -240,7 +234,6 @@
                         <p id="metricSiteVisitDetails" class="crm-card-text">No site visit recorded.</p>
                     </div>
 
-                    <!-- Follow-up & Sentiment Card -->
                     <div class="crm-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">🗓️</span>
@@ -260,7 +253,6 @@
                         </div>
                     </div>
 
-                    <!-- Objections Card -->
                     <div class="crm-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">⚠️</span>
@@ -271,7 +263,6 @@
                         </ul>
                     </div>
 
-                    <!-- Executive Summary -->
                     <div class="crm-card highlight-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">📝</span>
@@ -280,7 +271,6 @@
                         <p id="metricSummary" class="crm-card-text">--</p>
                     </div>
 
-                    <!-- Recommended Action -->
                     <div class="crm-card action-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">⚡</span>
@@ -289,7 +279,6 @@
                         <p id="metricAction" class="crm-card-text action-highlight">--</p>
                     </div>
 
-                    <!-- Raw JSON Viewer -->
                     <div class="crm-card json-card">
                         <div class="crm-card-header">
                             <span class="crm-card-icon">{ }</span>

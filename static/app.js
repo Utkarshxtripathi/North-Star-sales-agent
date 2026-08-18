@@ -1,18 +1,12 @@
-/**
- * Northstar One — Luxury Real Estate AI Concierge Client Logic
- * Handles conversational streaming, tool callout rendering, dual-channel voice/text,
- * and slide-over CRM structured analytics.
- */
-
 document.addEventListener("DOMContentLoaded", () => {
-    // Session state
+    // Retrieve existing session ID or generate a new random session key
     let sessionId = sessionStorage.getItem("northstar_session_id");
     if (!sessionId) {
         sessionId = "sess_" + Math.random().toString(36).substring(2, 9);
         sessionStorage.setItem("northstar_session_id", sessionId);
     }
 
-    // DOM Elements - Chat & Navigation
+    // Chat and navigation DOM elements
     const sessionDisplay = document.getElementById("sessionDisplay");
     const chatViewport = document.getElementById("chatViewport");
     const chatForm = document.getElementById("chatForm");
@@ -23,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const typingIndicator = document.getElementById("typingIndicator");
     const ttsToggle = document.getElementById("ttsToggle");
 
-    // DOM Elements - Drawer & Analytics
+    // CRM intelligence drawer DOM elements
     const btnOpenAnalytics = document.getElementById("btnOpenAnalytics");
     const btnCloseDrawer = document.getElementById("btnCloseDrawer");
     const analyticsDrawer = document.getElementById("analyticsDrawer");
@@ -34,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const analyticsPlaceholder = document.getElementById("analyticsPlaceholder");
     const analyticsDetails = document.getElementById("analyticsDetails");
 
-    // Analytics Card Values
+    // Analytics metrics display elements
     const metricInterest = document.getElementById("metricInterest");
     const metricLanguage = document.getElementById("metricLanguage");
     const metricConfig = document.getElementById("metricConfig");
@@ -49,37 +43,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const metricAction = document.getElementById("metricAction");
     const rawJsonBlock = document.getElementById("rawJsonBlock");
 
-    // Display session ID
+    // Render active session identifier in UI toolbar
     if (sessionDisplay) sessionDisplay.textContent = sessionId;
 
-    // =========================================================================
-    // Drawer Management
-    // =========================================================================
+    // Open slide-over analytics drawer
     function openDrawer() {
         analyticsDrawer.classList.add("open");
         analyticsBackdrop.classList.remove("hidden");
         document.body.style.overflow = "hidden";
     }
 
+    // Close slide-over analytics drawer
     function closeDrawer() {
         analyticsDrawer.classList.remove("open");
         analyticsBackdrop.classList.add("hidden");
         document.body.style.overflow = "";
     }
 
+    // Attach drawer toggle listeners
     if (btnOpenAnalytics) btnOpenAnalytics.addEventListener("click", openDrawer);
     if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeDrawer);
     if (analyticsBackdrop) analyticsBackdrop.addEventListener("click", closeDrawer);
 
+    // Close drawer when Escape key is pressed
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && analyticsDrawer.classList.contains("open")) {
             closeDrawer();
         }
     });
 
-    // =========================================================================
-    // Text-to-Speech (TTS) Voice Synthesis (Consistent Persona)
-    // =========================================================================
+    // Populate browser synthesis voices
     let availableVoices = [];
     function initVoices() {
         if ('speechSynthesis' in window) {
@@ -91,18 +84,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.speechSynthesis.onvoiceschanged = initVoices;
     }
 
+    // Select natural voice tailored for Hindi or Indian English
     function getConsistentVoice(isHindi) {
         if (!availableVoices || availableVoices.length === 0) {
             availableVoices = window.speechSynthesis.getVoices();
         }
 
         if (isHindi) {
-            // Consistent Hindi voice (prioritizing female natural voice)
             return availableVoices.find(v => (v.lang === 'hi-IN' || v.lang.startsWith('hi')) && (v.name.includes('Female') || v.name.includes('Swara') || v.name.includes('Kalpana') || v.name.includes('Google')))
                 || availableVoices.find(v => v.lang.startsWith('hi'))
                 || availableVoices.find(v => v.lang.includes('IN'));
         } else {
-            // Consistent Indian English concierge voice (prioritizing female natural voice)
             return availableVoices.find(v => (v.lang === 'en-IN' || v.lang.includes('en-IN')) && (v.name.includes('Heera') || v.name.includes('Neerja') || v.name.includes('Female') || v.name.includes('Natural') || v.name.includes('Google')))
                 || availableVoices.find(v => v.lang.includes('en-IN'))
                 || availableVoices.find(v => (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Jenny')) && v.lang.startsWith('en'))
@@ -111,14 +103,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Synthesize spoken audio for assistant responses via Web Speech API
     function speakText(text) {
         if (!('speechSynthesis' in window) || (ttsToggle && !ttsToggle.checked)) return;
 
-        window.speechSynthesis.cancel(); // Stop active speech
-        const cleanText = text.replace(/[*_#`~]/g, ''); // Strip markdown tokens
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/[*_#`~]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
-        // Detect Hindi script vs English/Hinglish
         const hasHindiScript = /[\u0900-\u097F]/.test(cleanText);
         utterance.lang = hasHindiScript ? 'hi-IN' : 'en-IN';
 
@@ -133,10 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.speechSynthesis.speak(utterance);
     }
 
-
-    // =========================================================================
-    // Message Rendering
-    // =========================================================================
+    // Render a chat message bubble, metadata timestamp, and optional tool callout card
     function appendMessage(role, content, toolDetails = null) {
         const group = document.createElement("div");
         group.className = `message-group ${role === 'user' ? 'user-group' : 'assistant-group'}`;
@@ -148,7 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const bubbleContainer = document.createElement("div");
         bubbleContainer.className = "bubble-container";
 
-        // Meta Header
         const meta = document.createElement("div");
         meta.className = "bubble-meta";
         meta.innerHTML = `
@@ -157,9 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         bubbleContainer.appendChild(meta);
 
-
-
-        // Content Bubble
         const bubble = document.createElement("div");
         bubble.className = `bubble ${role === 'user' ? 'user-bubble' : 'assistant-bubble'}`;
 
@@ -176,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bubble.appendChild(pElem);
         }
 
-        // Render Tool Callout Badge if function calling was triggered
+        // Render tool execution badge if a function call was made
         if (toolDetails) {
             const isSuccess = toolDetails.response && toolDetails.response.status === 'success';
             const toolCard = document.createElement("div");
@@ -200,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         bubbleContainer.appendChild(bubble);
 
-        // Add Listen (TTS) button for assistant responses
+        // Add audio replay button for assistant turns
         if (role === 'assistant') {
             const btnPlay = document.createElement("button");
             btnPlay.className = "btn-speech-play";
@@ -216,9 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chatViewport.scrollTop = chatViewport.scrollHeight;
     }
 
-    // =========================================================================
-    // Send Chat Message
-    // =========================================================================
+    // Send user message to FastAPI backend, display typing animation, and render response
     async function sendMessage(messageText) {
         if (!messageText || !messageText.trim()) return;
 
@@ -226,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
         userInput.value = '';
         userInput.focus();
 
-        // Show typing indicator
         typingIndicator.classList.remove("hidden");
         chatViewport.scrollTop = chatViewport.scrollHeight;
         btnSend.disabled = true;
@@ -254,7 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 speakText(data.response);
             }
 
-            // Show active indicator on analytics button
             if (analyticsBadgeCount) {
                 analyticsBadgeCount.classList.remove("hidden");
             }
@@ -268,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Handle form submit
+    // Handle chat form submission
     chatForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const text = userInput.value.trim();
@@ -277,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Handle Quick Scenario Chips (Robust Event Delegation)
+    // Event delegation handler for quick scenario buttons
     const scenarioScrollContainer = document.querySelector(".scenario-chips-scroll");
     if (scenarioScrollContainer) {
         scenarioScrollContainer.addEventListener("click", (e) => {
@@ -291,22 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Direct binding fallback for all elements with data-msg
-    const scenarioChips = document.querySelectorAll("[data-msg]");
-    scenarioChips.forEach(chip => {
-        chip.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const msg = chip.getAttribute("data-msg");
-            if (msg) {
-                sendMessage(msg);
-            }
-        });
-    });
-
-
-    // =========================================================================
-    // Speech Recognition (STT Microphone)
-    // =========================================================================
+    // Microphone speech recognition setup (STT)
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
@@ -347,9 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnMic.style.opacity = "0.5";
     }
 
-    // =========================================================================
-    // CRM Structured Analytics Generation
-    // =========================================================================
+    // Fetch and render CRM lead intelligence from backend
     btnGenerateAnalytics.addEventListener("click", async () => {
         btnGenerateAnalytics.disabled = true;
         btnGenerateAnalytics.innerHTML = `<span>⏳</span> Extracting Insights...`;
@@ -380,11 +344,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Populate structured analytics metrics into drawer cards
     function renderAnalytics(data) {
         analyticsPlaceholder.classList.add("hidden");
         analyticsDetails.classList.remove("hidden");
 
-        // Interest Level Badge
+        // Set interest badge style and text
         metricInterest.textContent = data.interest_level;
         metricInterest.className = "badge-status";
         if (data.interest_level === "High") metricInterest.classList.add("badge-high");
@@ -392,21 +357,21 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (data.interest_level === "DND_Requested") metricInterest.classList.add("badge-dnd");
         else metricInterest.classList.add("badge-low");
 
-        // Metrics
+        // Qualification details
         metricLanguage.textContent = data.language_detected;
         metricConfig.textContent = data.configuration_preference;
         metricBudget.textContent = data.budget_range;
 
-        // Site Visit Status
+        // Booking status
         metricSiteVisitStatus.textContent = data.site_visit_status;
         metricSiteVisitDetails.textContent = data.site_visit_details || (data.site_visit_status === 'Booked' ? 'Visit slot confirmed' : 'No visit scheduled');
 
-        // Follow-up & Sentiment
+        // Follow-up actions and customer sentiment
         metricFollowup.textContent = data.follow_up_requirement;
         metricCallbackTime.textContent = data.preferred_callback_time || 'None';
         metricSentiment.textContent = data.customer_sentiment;
 
-        // Objections
+        // Objections list
         metricObjectionsList.innerHTML = '';
         if (data.objections_raised && data.objections_raised.length > 0) {
             data.objections_raised.forEach(obj => {
@@ -420,15 +385,15 @@ document.addEventListener("DOMContentLoaded", () => {
             metricObjectionsList.appendChild(li);
         }
 
-        // Summary & Action
+        // Summary and recommended next action
         metricSummary.textContent = data.executive_summary;
         metricAction.textContent = data.recommended_next_action;
 
-        // Raw JSON Block
+        // Raw structured JSON output
         rawJsonBlock.textContent = JSON.stringify(data, null, 2);
     }
 
-    // Copy Raw JSON to Clipboard
+    // Copy structured JSON payload to clipboard
     if (btnCopyJson) {
         btnCopyJson.addEventListener("click", () => {
             const jsonText = rawJsonBlock.textContent;
@@ -442,9 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // =========================================================================
-    // Reset / New Session
-    // =========================================================================
+    // Reset current conversation and initialize a fresh session
     btnNewSession.addEventListener("click", async () => {
         if (confirm("Start a new chat session? Current memory will be reset.")) {
             try {
@@ -461,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.setItem("northstar_session_id", sessionId);
             if (sessionDisplay) sessionDisplay.textContent = sessionId;
 
-            // Reset Chat Viewport
+            // Reset chat viewport with initial greeting
             chatViewport.innerHTML = `
                 <div class="message-group assistant-group">
                     <div class="avatar advisor-avatar">
@@ -481,9 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-
-            
-            // Reset Drawer
+            // Reset analytics drawer view
             analyticsPlaceholder.classList.remove("hidden");
             analyticsDetails.classList.add("hidden");
             rawJsonBlock.textContent = "";

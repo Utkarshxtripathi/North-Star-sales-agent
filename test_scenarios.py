@@ -1,13 +1,6 @@
-"""
-Automated Test Suite for Huvo AI Real Estate Conversational Agent (Northstar One).
-Evaluates agent behaviour, dialect mirroring, objection handling, function calling,
-failure handling, guardrails, and structured analytics across 9 key evaluation scenarios.
-"""
-
 import os
 import sys
 import json
-import time
 import uuid
 import argparse
 from typing import Dict, Any, List
@@ -18,18 +11,17 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-# Ensure UTF-8 output in Windows terminal
+# Ensure UTF-8 output encoding for terminals
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
 
-from agent import RealEstateAgent
+from backend.agent import RealEstateAgent
 
 load_dotenv()
 
-
+# Execute a single multi-turn scenario and return dialogue transcript plus CRM analytics
 def run_scenario(agent: RealEstateAgent, scenario_id: int, title: str, turns: List[str], expected_behavior: str) -> Dict[str, Any]:
-    """Runs a multi-turn scenario on a fresh session and evaluates output."""
     session_id = f"test_scenario_{scenario_id}_{uuid.uuid4().hex[:6]}"
     print(f"\n================================================================================")
     print(f"RUNNING SCENARIO {scenario_id}: {title}")
@@ -53,7 +45,7 @@ def run_scenario(agent: RealEstateAgent, scenario_id: int, title: str, turns: Li
         print(f"Agent [Turn {turn_idx}]: {bot_reply}\n")
         actual_dialogue.append({"user": user_msg, "agent": bot_reply, "tool": tool_details})
         
-    # Extract Analytics
+    # Extract CRM intelligence from conversation transcript
     analytics = agent.generate_analytics(session_id=session_id)
     print(f"CRM Analytics Extracted:")
     print(f" - Language: {analytics.language_detected}")
@@ -73,7 +65,7 @@ def run_scenario(agent: RealEstateAgent, scenario_id: int, title: str, turns: Li
         "analytics": analytics.model_dump()
     }
 
-
+# CLI entry point to run scenarios or print benchmark reports
 def main():
     parser = argparse.ArgumentParser(description="Northstar One Agent Evaluation Test Suite")
     parser.add_argument("--scenario", type=int, default=None, help="Run a specific scenario by ID (1-9)")
@@ -88,12 +80,13 @@ def main():
         return
 
     print("================================================================================")
-    print(" HUVO AI - FORWARD DEPLOYED ENGINEER ASSIGNMENT TEST SUITE")
+    print(" NORTHSTAR SALES AGENT - EVALUATION TEST SUITE")
     print(" Evaluating Northstar One Sales Agent Behaviour & Analytics")
     print("================================================================================")
     
     agent = RealEstateAgent()
     
+    # 9 core evaluation scenarios covering qualification, language, objections, tools, and guardrails
     scenarios = [
         {
             "id": 1,
@@ -187,10 +180,10 @@ def main():
         )
         results.append(res)
         
-    # Save results to markdown if running all scenarios
+    # Persist all scenario evaluations to test_results.md
     if args.scenario is None:
         with open(output_path, "w", encoding="utf-8") as f:
-            f.write("# Huvo AI Sales Agent - Evaluation Test Results\n\n")
+            f.write("# Northstar Sales Agent - Evaluation Test Results\n\n")
             f.write(f"**Project**: Northstar One (Sector 79, Gurugram)\n")
             f.write(f"**Backend**: FastAPI / Python\n")
             f.write(f"**Model**: {agent.model_name}\n\n")
@@ -213,7 +206,6 @@ def main():
         print(f"All evaluation test scenarios completed successfully!")
         print(f"Detailed evaluation report saved to: {output_path}")
         print(f"================================================================================")
-
 
 if __name__ == "__main__":
     main()
