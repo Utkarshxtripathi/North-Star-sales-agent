@@ -17,22 +17,45 @@ The agent is engineered from the ground up for **dual-channel suitability** (wor
 
 ## 🏗️ System Architecture
 
-```mermaid
-graph TD
-    User([Prospective Homebuyer]) -->|Web Chat / Voice Input| Frontend[Modern Web Interface - HTML5/CSS/JS]
-    Frontend -->|POST /api/chat| FastAPIServer[FastAPI Backend - main.py]
-    Frontend -->|POST /api/analytics| FastAPIServer
-    
-    FastAPIServer --> AgentOrchestrator[Agent Orchestrator - agent.py]
-    AgentOrchestrator -->|Session History & Memory| MemoryStore[(In-Memory Session Store)]
-    AgentOrchestrator -->|System Prompt & Tools| GeminiAPI[Google Gemini API - google-genai]
-    
-    GeminiAPI -->|Native Tool Execution| ToolEngine[Tools Engine - tools.py]
-    ToolEngine -->|Success / Failure Result| GeminiAPI
-    GeminiAPI -->|Natural Language Turn| FastAPIServer
-    
-    FastAPIServer -->|Structured Output Extraction| AnalyticsEngine[Pydantic Analytics Extractor]
-    AnalyticsEngine -->|Validated JSON Schema| Frontend
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 PROSPECTIVE HOMEBUYER                                  │
+│                   (Web Chat Interface / Voice Speech-to-Text Input)                    │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │ HTTP POST (/api/chat, /api/analytics)
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                FASTAPI BACKEND SERVER                                  │
+│                                  (backend/main.py)                                     │
+│   • REST Endpoints (/api/chat, /api/analytics, /api/session/reset, /api/health)        │
+│   • CORS Middleware & Static / Template Serving                                        │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                AI AGENT ORCHESTRATOR                                   │
+│                                  (backend/agent.py)                                    │
+│   • Multi-Turn Conversation Memory & Active Session State Management                   │
+│   • Multi-Model Failover Engine (Gemini 2.5 Flash / Flash Lite)                        │
+└─────────────────────┬────────────────────────────────────────────────────┬─────────────┘
+                      │                                                    │
+                      ▼                                                    ▼
+┌──────────────────────────────────────────────┐ ┌───────────────────────────────────────┐
+│              GOOGLE GEMINI API               │ │       STRUCTURED CRM ANALYTICS        │
+│             (`google-genai` SDK)             │ │       (Pydantic LeadAnalytics)        │
+│   • Dual-Channel System Instruction          │ │   • Real-Time Qualification Scoring   │
+│   • Multi-Lingual Dialect Mirroring          │ │   • Budget & Preference Extraction    │
+│   • Automatic Function Calling (AFC)         │ │   • Objections & Recommended Actions  │
+└─────────────────────┬────────────────────────┘ └───────────────────────────────────────┘
+                      │ Native Tool Execution
+                      ▼
+┌──────────────────────────────────────────────┐
+│            BACKEND TOOLS ENGINE              │
+│              (backend/tools.py)              │
+│   • `book_site_visit(...)`                   │
+│   • 10:00 AM - 6:00 PM Visiting Constraints  │
+│   • Failure Slot Recovery Simulation         │
+└──────────────────────────────────────────────┘
 ```
 
 ---
